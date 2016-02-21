@@ -16,8 +16,6 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-# Admin login: username and password are admin.
-
 urlpatterns = [
     url(r'^Flu/', include('Tweets.urls', namespace="Flu")),
     url(r'^admin/', admin.site.urls),
