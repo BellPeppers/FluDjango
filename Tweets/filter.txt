@@ -1,3 +1,35 @@
-flu
+fever
+feverish
+chills
 cough
+sore throat
+runny nose
+stuffy nose
+aches
+headache
+headaches
+fatigue
+tired
+nausea
+vomiting
+vomitting
+sneezing
+runny nose
+stuffy nose
 sick
+congestion
+pneumonia
+tamiflu
+theraflu
+dayquil
+nyquil
+mucinex
+tylenol
+aspirin
+shot
+vaccine
+doctor
+medicine
+H1N1
+ill
+influenza
