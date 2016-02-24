@@ -9,17 +9,14 @@ module_dir = os.path.dirname(__file__)  # get current directory
 file_path = os.path.join(module_dir, 'filter.txt')
 import Tweets.models as model
 
-def write_tweets(api, filter, start_date, end_date, region, count):
+def write_tweets(api, filter, count):
     page = 1
     ct = 0
     deadend = False
     while True:
         # run api search
-        tweets = tweepy.Cursor(api.search, q=filter, lang="en", locations=region,since=start_date, until=end_date).items(count)
+        tweets = tweepy.Cursor(api.search, q=filter).items(count)
         for tweet in tweets:
-            #if (datetime.datetime.now() - tweet.created_at).days < 5: # example time stamp: 2015-11-24 02:13:33 or 2015-11-01
-            #    #Do processing here:
-            #    #print tweet.geocode
             t, created = model.Tweet.objects.get_or_create(
                 content=tweet.text,
                 user=tweet.user.screen_name,
@@ -36,18 +33,17 @@ def write_tweets(api, filter, start_date, end_date, region, count):
             page+=1
             time.sleep(500)
 
-def print_tweets(api, filter, start_date, end_date, region, count):
+def print_tweets(api, filter, count):
     page = 1
     ct = 0
     deadend = False
     while True:
         # run api search
-        tweets = tweepy.Cursor(api.search, q=filter, lang="en", locations=region,since=start_date, until=end_date).items(count)
+        tweets = tweepy.Cursor(api.search,q=filter).items(count)
         for tweet in tweets:
-            #if (datetime.datetime.now() - tweet.created_at).days < 5: # example time stamp: 2015-11-24 02:13:33 or 2015-11-01
-            #    #Do processing here:
-            #    #print tweet.geocode
             print(tweet.text)
+            print(tweet.place)
+            print(tweet.coordinates)
             print(tweet.created_at)
             ct = ct + 1
 
@@ -75,24 +71,18 @@ def tweetPull():
     # filter words (array named "filter")
     file = open(file_path) # read in filter words from file named "filter.txt"; alter that file or just write it in here
     filter = file.readlines()
+    query = ""
     file.close()
     for x in range(0, len(filter)):
-        filter[x] = filter[x].strip()
-
-    # dates to search within
-    start_date = "2016-1-01" # year-mo-dy format
-    end_date = "2016-02-19"
+        query += filter[x].strip() + " OR "
+    query += filter[len(filter) - 1]
 
     # area of search
-    region = [41.65,-79.67,44.91,-73.39] # set using coordinates (I think this is the state of New York atm)
+    region = "37.781157,-122.398720,1mi" # set using coordinates (I think this is the state of New York atm)
 
     # desired number of tweets
     count = 20
 
-    # json file to write to (if writing to file)
-    json_file = 'tweets.json'
-
     ''' run function '''
-    write_tweets(api,filter,start_date,end_date,region,count)
-    #print_tweets(api, filter, start_date, end_date, region, count)
-    #write_tweets_to_json(api, filter, start_date, end_date, region, count, json_file)
+    #write_tweets(api,filter,start_date,end_date,region,count)
+    print_tweets(api, query, count)
