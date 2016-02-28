@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Tweet
-from .tweetHelper import tweetPull
+from .models import Tweet, Region
+from.tweetHelper import test
 # Register your models here.
 
 # Admin login: username is admin, password is admin0123.
@@ -11,9 +11,15 @@ class TweetAdmin(admin.ModelAdmin):
         ('User', {'fields': ['user']}),
         ('Date', {'fields': ['date']}),
         ('Score', {'fields': ['score']}),
+        ('Region', {'fields': ['region']}),
+    ]
+
+class RegionAdmin(admin.ModelAdmin):
+    fieldsets = [
+        ('Subunit', {'fields': ['subunit']}),
+        ('Coordinates', {'fields': ['location']}),
+        ('Score', {'fields': ['score']}),
     ]
 
 admin.site.register(Tweet,TweetAdmin)
-
-tweetPull()
-
+admin.site.register(Region,RegionAdmin)

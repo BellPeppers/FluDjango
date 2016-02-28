@@ -2,9 +2,7 @@ fever
 feverish
 chills
 cough
-sore throat
-runny nose
-stuffy nose
+"sore throat"
 aches
 headache
 headaches
@@ -14,8 +12,8 @@ nausea
 vomiting
 vomitting
 sneezing
-runny nose
-stuffy nose
+"runny nose"
+"stuffy nose"
 sick
 congestion
 pneumonia
