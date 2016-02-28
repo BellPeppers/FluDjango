@@ -19,10 +19,12 @@ class RegionAdmin(admin.ModelAdmin):
         ('Subunit', {'fields': ['subunit']}),
         ('Coordinates', {'fields': ['location']}),
         ('Pulled', {'fields': ['pulled']}),
-        ('Score', {'fields': ['score']}),
+        ('Tweet score', {'fields': ['tweetScore']}),
+        ('Final score', {'fields': ['finalScore']}),
+        ('Adjacent regions', {'fields': ['adjacent']}),
     ]
 
 admin.site.register(Tweet,TweetAdmin)
 admin.site.register(Region,RegionAdmin)
 
-tweetPull()
+# tweetPull()

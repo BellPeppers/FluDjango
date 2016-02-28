@@ -1,4 +1,5 @@
 from tweepy import OAuthHandler
+from django.db.models import Sum, Avg
 import json, datetime, time, timestring
 import tweepy, os, csv
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FluDjango.settings")
@@ -25,6 +26,15 @@ def analysis(tweet):
         tweet_score = tweet_score + symptomRecognition(word, symptoms)
 
     return tweet_score
+
+def analyzeAll():
+    tweets = model.Tweet.objects.all()
+    for tweet in tweets:
+        tweet.score = analysis(tweet.content)
+        if tweet.score > 0:
+            tweet.save()
+        else:
+            tweet.delete()
 
 def symptomRecognition(word, symptoms):
     symptoms1 = [symptoms[0], symptoms[1]]
@@ -131,3 +141,12 @@ def tweetPull():
     ''' run function '''
     write_tweets(api, query, count)
     #print_tweets(api, query, count)
+
+def gatherTweetScore():
+    regions = model.Region.objects.all()
+    for reg in regions:
+        tweets = model.Tweet.objects.filter(region=reg)
+        sum = 0
+        for tweet in tweets:
+            sum += tweet.score
+        reg.tweetScore = sum

@@ -10,8 +10,5 @@ class IndexView(ListView):
     template_name = 'Flu/index.html'
 
     def get_queryset(self):
-        tweets = Tweet.objects.all()
-        for tweet in tweets:
-            tweet.score = analysis(tweet.content)
-            tweet.save()
+
         return
