@@ -5,65 +5,69 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FluDjango.settings")
 module_dir = os.path.dirname(__file__)  # get current directory
 file_path = os.path.join(module_dir, 'filter.txt')
 file_path2 = os.path.join(module_dir, 'subunits.csv')
-# import Tweets.models as model
+import Tweets.models as model
 from nltk.tokenize import word_tokenize
 
 count = 0
+def unmarkRegions():
+    regions = model.Region.objects.all()
+    for region in regions:
+        region.pulled = False
+        region.save()
 
-# def analysis(tweet):
-#     symptoms = ['cough', 'fever','sick'] # need a better way to do this. shold probably write this into a json and read it when analyzing
-#     tweet_score = 0
-#
-#     words = word_tokenize(tweet)
-#     #tagged_words = nltk.pos_tag(words) # not sure what to use this for yet, but I think it's at least cool to have
-#     for word in words:
-#         tweet_score = tweet_score + symptomRecognition(word, symptoms)
-#
-#     return tweet_score
-#
-# def symptomRecognition(word, symptoms):
-#     symptoms1 = [symptoms[0], symptoms[1]]
-#     symptoms2 = [symptoms[2]]
-#     if word.lower() in symptoms1: # check lowercase word
-#         return 1
-#     if word.lower() in symptoms2:
-#         return 0.5
-#     return 0
-#
-# def regionCreator():
-#     with open(file_path2) as f:
-#         reader = csv.reader(f)
-#         for col in reader:
-#             reg, created = model.Region.objects.get_or_create(
-#                 subunit=int(col[0]),
-#                 location=str(str(col[1])+","+str(col[2])+","+str(col[3]))
-#                 )
-#
-#
-# def write_tweets(api, filter, count):
-#     page = 1
-#     ct = 0
-#     deadend = False
-#     regions = model.Region.objects.all()
-#     for reg in regions:
-#         tweets = tweepy.Cursor(api.search, q=filter, geocode=reg.location).items(count)
-#         for tweet in tweets:
-#             t, created = model.Tweet.objects.get_or_create(
-#                 content=tweet.text,
-#                 user=tweet.user.screen_name,
-#                 date=tweet.created_at,
-#                 region=reg)
-#             ct = ct + 1
-#
-#             # exit clause
-#             if ct == count:
-#                 continue
-#             #else:
-#             #    deadend = True
-#             #    return
-#         if not deadend:
-#             page+=1
-#             time.sleep(500)
+def analysis(tweet):
+    symptoms = ['cough', 'fever','sick'] # need a better way to do this. shold probably write this into a json and read it when analyzing
+    tweet_score = 0
+
+    words = word_tokenize(tweet)
+    #tagged_words = nltk.pos_tag(words) # not sure what to use this for yet, but I think it's at least cool to have
+    for word in words:
+        tweet_score = tweet_score + symptomRecognition(word, symptoms)
+
+    return tweet_score
+
+def symptomRecognition(word, symptoms):
+    symptoms1 = [symptoms[0], symptoms[1]]
+    symptoms2 = [symptoms[2]]
+    if word.lower() in symptoms1: # check lowercase word
+        return 1
+    if word.lower() in symptoms2:
+        return 0.5
+    return 0
+
+def regionCreator():
+    with open(file_path2) as f:
+        reader = csv.reader(f)
+        for col in reader:
+            reg, created = model.Region.objects.get_or_create(
+                subunit=int(col[0]),
+                location=str(str(col[1])+","+str(col[2])+","+str(col[3]))
+                )
+
+
+def write_tweets(api, filter, count):
+    page = 1
+    ct = 0
+    deadend = False
+    regions = model.Region.objects.all()
+    for reg in regions:
+        if reg.pulled:
+            continue
+        tweets = tweepy.Cursor(api.search, q=filter, geocode=reg.location).items(count)
+        for tweet in tweets:
+            t, created = model.Tweet.objects.get_or_create(
+                content=tweet.text,
+                user=tweet.user.screen_name,
+                date=tweet.created_at,
+                region=reg)
+            ct = ct + 1
+
+            # exit clause
+            if ct == count:
+                continue
+
+        reg.pulled = True
+        reg.save()
 
 def print_tweets(api, filter, count):
     page = 1
@@ -125,13 +129,5 @@ def tweetPull():
     count = 20
 
     ''' run function '''
-    #write_tweets(api,filter,start_date,end_date,region,count)
-    print_tweets(api, query, count)
-
-def test():
-    global count
-    if count == 0:
-        print("test")
-    count = 1
-
-tweetPull()
+    write_tweets(api, query, count)
+    #print_tweets(api, query, count)

@@ -3,6 +3,7 @@ from django.db import models
 class Region(models.Model):
     location = models.CharField(max_length=50)
     subunit = models.IntegerField()
+    pulled = models.BooleanField(default=False)
     score = models.IntegerField(null=True)
 
     def __str__(self):
