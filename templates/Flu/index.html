@@ -48,7 +48,8 @@
         };
 
 	//Map Data Creation
-	for each (scoreObj in scoreData){//mapData is coming from ./ref/mapddata.js
+	for(var ctr=0; ctr<scoreData.length;ctr++){//mapData is coming from ./ref/mapddata.js
+		var scoreObj = scoreData[ctr];
 		mapData[''+scoreObj.subunit].score = scoreObj.finalScore;
         	mapData[''+scoreObj.subunit].fillColor= function(geography,data){
 								var score = data.score;
