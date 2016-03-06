@@ -1,0 +1,4 @@
+[core]
+symlinks = false
+autocrlf = true
+longpaths = true
