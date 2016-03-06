@@ -3,4 +3,8 @@ var width = 960,
 
 var svg = d3.select("body").append("svg")
     .attr("width", width)
+<<<<<<< HEAD
     .attr("height", height);
+=======
+    .attr("height", height);
+>>>>>>> 8d2e0f6f9cd5f9ec7821b29412a6e595dd39e49d
