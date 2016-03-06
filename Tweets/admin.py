@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Tweet, Region
-from.tweetHelper import tweetPull
+from .tweetHelper import tweetPull, adjacentRegions, regionCreator, analysis, gatherTweetScore, calcFinalScore
 # Register your models here.
 
 # Admin login: username is admin, password is admin0123.
@@ -27,4 +27,9 @@ class RegionAdmin(admin.ModelAdmin):
 admin.site.register(Tweet,TweetAdmin)
 admin.site.register(Region,RegionAdmin)
 
+# regionCreator()
+# adjacentRegions()
 # tweetPull()
+# analysis()
+# gatherTweetScore()
+# calcFinalScore()

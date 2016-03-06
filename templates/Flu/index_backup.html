@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>D3 Graphic</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h2>D3 Graphic</h2>
+    <div id="chart"></div>
+  </div>
+  <script src="ref/jsonData.js"></script>
+  <script src="ref/d3.min.js"></script>
+  <script src="ref/node_modules/topojson/build/topojson.min.js"></script>
+  <script src="ref/node_modules/datamaps/dist/datamaps.usa.min.js"></script>
+  <div id="container2" style="position: relative; width: 800px; height: 600px;"></div>
+
+
+       <script>
+
+         //basic map config with custom fills, mercator projection
+	var scoreData = "{{regionList}}";//subunit is subunit (1-148) in django 
+					//score is finalScore in django
+        var mapParams = {
+          element: document.getElementById('container2'),
+          //projection: '',
+          geographyConfig: {
+                dataUrl: 'community-districts-polygon.json',//'census_tracts_2010.json'
+                popupTemplate: function(geography, data) {
+                                return '<div class="hoverinfo"><strong>'+data.borough+": "+data.district+" Score: "+data.score+'</div>'
+                            },
+                highlightOnHover: function(){
+                    return false;
+                },
+                popupOnHover: function(geography, data) {
+                                return (data !== null);
+                            },
+          },
+          scope: 'community-districts-polygon',//'nyct2010',
+          setProjection: function(element) {
+            var projection = d3.geo.equirectangular()
+              .center([-73.9, 40.75])
+              .scale(68000)
+            var path = d3.geo.path()
+              .projection(projection);
+
+            return {path: path, /*projection: projection*/};
+          },
+          fills: {
+            defaultFill: 'grey',
+            staten : 'orange',
+            manhattan: 'red',
+            bronx: 'blue',
+            queens: 'purple',
+            brooklyn: 'green'
+          }
+        };
+    var mapData = {'1':{}};
+    var boroughList = ["staten","manhattan","bronx", "queens","brooklyn"];
+    var scores = [];
+    var gids = [];
+    var boroughs =["Staten Island", "Manhattan","Bronx","Queens","Brooklyn"];
+    for (var ctr= 0; ctr < 5;ctr++){
+        scores = scores.concat(scoreData[boroughList[ctr]].score);
+        gids = gids.concat(scoreData[boroughList[ctr]].gid);
+    }
+    for (var ctr = 0;ctr<gids.length;ctr++){
+        var bor = "Error";
+	var districtno=0;
+        for(var ctr2=0;ctr2<5;ctr2++){
+            if(scoreData[boroughList[ctr2]].gid.indexOf(gids[ctr])!=-1){
+		districtno = scoreData[boroughList[ctr2]].gid.indexOf(gids[ctr])
+                bor = boroughList[ctr2];
+                break;
+            }
+        }
+        console.log(bor);
+        mapData[''+gids[ctr]]={'fillColor':function(geography,data){
+                                            var score = data.score;
+                                            var rgb = hslToRgb(getHue(score),1,getLight(score));
+                                            return "rgb("+rgb[0]+","+rgb[1]+","+rgb[2]+")";
+                                        },
+                        'score':scores[ctr],
+                        'gid':gids[ctr],
+                        'district':districtno+1,
+                        'borough': boroughs[boroughList.indexOf(bor)]
+                        };
+
+    }
+    mapParams.data = mapData; 
+    var map = new Datamap(mapParams);
+    function getHue(gHue){
+        var max = 5.0;
+        var min = 1.0;
+        var ymax = 0.0;
+        var ymin = 103.0/360;
+        var slope = (ymax - ymin)/(0.0+max-min);
+        return slope*gHue+(ymin*min-slope);
+    };
+    function getLight(gLight){
+        var max = 5.0;
+        var min = 1.0;
+        var ymax = .55;
+        var ymin = .6;
+        var slope = (ymax - ymin)/(0.0+max-min);
+        return slope*gLight+(ymin*min-slope);
+    };
+    function rgbToHsl(r, g, b){
+        r /= 255, g /= 255, b /= 255;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+    
+        if(max == min){
+            h = s = 0; // achromatic
+        }else{
+            var d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch(max){
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+    
+        return [h, s, l];
+    };
+    function hslToRgb(h, s, l){
+        var r, g, b;
+        h=h-Math.floor(h);
+        // h=h-Math.floor(h);
+        // s=s-Math.floor(s);
+        // l=l-Math.floor(l);
+        if(s == 0){
+            r = g = b = l; // achromatic
+        }else{
+            var hue2rgb = function hue2rgb(p, q, t){
+                if(t < 0) t += 1;
+                if(t > 1) t -= 1;
+                if(t < 1/6) return p + (q - p) * 6 * t;
+                if(t < 1/2) return q;
+                if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            }
+    
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            r = hue2rgb(p, q, h + 1/3);
+            g = hue2rgb(p, q, h);
+            b = hue2rgb(p, q, h - 1/3);
+        }
+    
+        return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    };
+
+       </script>
+
+              <script type="text/javascript">
+   
+  </script>
+
+  </body>

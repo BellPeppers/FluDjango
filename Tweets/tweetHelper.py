@@ -1,11 +1,11 @@
 from tweepy import OAuthHandler
-from django.db.models import Sum, Avg
 import json, datetime, time, timestring
 import tweepy, os, csv
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "FluDjango.settings")
 module_dir = os.path.dirname(__file__)  # get current directory
 file_path = os.path.join(module_dir, 'filter.txt')
 file_path2 = os.path.join(module_dir, 'subunits.csv')
+file_path3 = os.path.join(module_dir, 'Region_Neighbors.csv')
 import Tweets.models as model
 from nltk.tokenize import word_tokenize
 
@@ -16,34 +16,64 @@ def unmarkRegions():
         region.pulled = False
         region.save()
 
-def analysis(tweet):
-    symptoms = ['cough', 'fever','sick'] # need a better way to do this. shold probably write this into a json and read it when analyzing
-    tweet_score = 0
+def deleteRegions():
+    regions = model.Region.objects.all()
+    for region in regions:
+        region.delete()
 
-    words = word_tokenize(tweet)
-    #tagged_words = nltk.pos_tag(words) # not sure what to use this for yet, but I think it's at least cool to have
-    for word in words:
-        tweet_score = tweet_score + symptomRecognition(word, symptoms)
+def analysis():
+    symptoms1 = ['fever', 'chills', 'aches', 'fatigue', 'tired', 'tamiflu', 'theraflu', 'H1N1', 'swine', 'flu', 'influenza'] #1 point
+    #symptoms2 = [] #.9 points
+    symptoms3 = ['cough', 'headache', 'nausea', 'vomiting', 'dayquil', 'nyquil', 'temperature'] #.8 point
+    symptoms4 = ['pneumonia'] #.7 point
+    symptoms5 = ['ill', 'sick'] #.6points
+    symptoms6 = ['runny nose', 'stuffy nose', 'congestion', 'sick', 'mucinex'] #.5 points
+    symptoms7 = ['sore throat', 'tylenol'] #.4points
+    #symptoms8 = [] #.3points
+    symptoms9 = ['sneezing', 'shot', 'vaccine', 'medicine'] #.2points
+    symptoms0 = ['sore', 'doctor'] #.1points
+    # need a better way to do this. shold probably write this into a json and read it when analyzing
 
-    return tweet_score
+    tweet_list = model.Tweet.objects.all()
+    for tweet in tweet_list:
 
-def analyzeAll():
-    tweets = model.Tweet.objects.all()
-    for tweet in tweets:
-        tweet.score = analysis(tweet.content)
+        tweet.score = 0
+
+        words = word_tokenize(tweet.content)
+        #tagged_words = nltk.pos_tag(words) # not sure what to use this for yet, but I think it's at least cool to have
+        for word in words:
+            tweet.score += symptomRecognition(word, symptoms1, 1)
+            #tweet.score += symptomRecognition(word, symptoms2, .9)
+            tweet.score += symptomRecognition(word, symptoms3, .8)
+            tweet.score += symptomRecognition(word, symptoms4, .7)
+            tweet.score += symptomRecognition(word, symptoms5, .6)
+            tweet.score += symptomRecognition(word, symptoms6, .5)
+            tweet.score += symptomRecognition(word, symptoms7, .4)
+            #tweet.score += symptomRecognition(word, symptoms8, .3)
+            tweet.score += symptomRecognition(word, symptoms9, .2)
+            tweet.score += symptomRecognition(word, symptoms0, .1)
+
         if tweet.score > 0:
             tweet.save()
         else:
             tweet.delete()
 
-def symptomRecognition(word, symptoms):
-    symptoms1 = [symptoms[0], symptoms[1]]
-    symptoms2 = [symptoms[2]]
-    if word.lower() in symptoms1: # check lowercase word
-        return 1
-    if word.lower() in symptoms2:
-        return 0.5
-    return 0
+def symptomRecognition(word, symptoms, score):
+   if word.lower() in symptoms: # check lowercase word
+        return score
+   return 0
+
+def adjacentRegions():
+    file = open(file_path3)
+    regions = file.readlines()
+    file.close()
+    for x in range(0, len(regions)):
+        subunits = regions[x].strip().split(",")
+        curUnit = model.Region.objects.get(subunit=subunits[0])
+        # curUnit.adjacent.clear()
+        for y in range(1, len(subunits)):
+            curUnit.adjacent.add(model.Region.objects.get(subunit=subunits[y]))
+            curUnit.save()
 
 def regionCreator():
     with open(file_path2) as f:
@@ -132,11 +162,10 @@ def tweetPull():
     file.close()
     for x in range(0, len(filter) - 1):
         query += filter[x].strip() + " OR "
-    query += filter[len(filter) - 1]
-    print(query)
+    query += filter[len(filter) - 1] + "-filter:retweets"
 
     # desired number of tweets
-    count = 20
+    count = 50
 
     ''' run function '''
     write_tweets(api, query, count)
@@ -150,3 +179,14 @@ def gatherTweetScore():
         for tweet in tweets:
             sum += tweet.score
         reg.tweetScore = sum
+        reg.save()
+
+def calcFinalScore():
+    regions = model.Region.objects.all()
+    for reg in regions:
+        adRegs = reg.adjacent.all()
+        adScore = 0
+        for adj in adRegs:
+            adScore += adj.tweetScore
+        reg.finalScore = reg.tweetScore + (.2*adScore)
+        reg.save()
