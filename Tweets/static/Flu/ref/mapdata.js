@@ -43,6 +43,9 @@ var mapData={
     "borough": "Bronx",
     "dist": "2"
   },
+  "14": {
+    "name": "Pelham Bay"
+  },
   "17": {
     "borough": "Brooklyn",
     "dist": "18"
@@ -74,6 +77,9 @@ var mapData={
   "55": {
     "borough": "Queens",
     "dist": "14"
+  },
+  "56": {
+    "name": "JFK International Airport"
   },
   "75": {
     "borough": "Staten Island",
@@ -223,6 +229,12 @@ var mapData={
     "borough": "Queens",
     "dist": "8"
   },
+  "128": {
+    "name": "Prospect Park"
+  },
+  "129": {
+    "name": "Central Park"
+  },
   "130": {
     "borough": "Brooklyn",
     "dist": "1"
@@ -279,4 +291,4 @@ var mapData={
     "borough": "Bronx",
     "dist": "10"
   }
-}
+};
